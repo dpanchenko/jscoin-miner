@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run: |
+          export BUILD_TAG=$(eval "echo ${CIRCLE_TAG}")
+          export BUILD_REPO=jscoin
+          bash scripts/docker-image.sh
+
+workflows:
+  version: 2
+  deploy_to_docker:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/

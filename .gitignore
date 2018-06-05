@@ -1,0 +1,9 @@
+logs
+*.log
+npm-debug.log*
+node_modules/
+.eslintcache
+.envrc
+.nyc_output/
+coverage/
+.DS_Store
