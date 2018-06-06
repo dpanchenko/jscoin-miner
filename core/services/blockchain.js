@@ -12,47 +12,49 @@ if (!MINER_OUTPUT) {
   throw new Error('Miner output is not defined');
 }
 
-const blockchain = new Chain();
-const transactions = new Transactions();
+module.exports = (db) => {
+  const blockchain = new Chain(db);
+  const transactions = new Transactions();
 
-const mine = () => {
-  log('start mining new block');
-  const lastBlock = blockchain.last;
-  const lastNonce = lastBlock.data.nonce;
-  const nonce = proofOfWork(lastNonce);
-  transactions.add({
-    input: 'coinbase',
-    output: MINER_OUTPUT,
-    amount: 1,
-  });
-  const newBlock = blockchain.add({
-    nonce,
-    transactions: transactions.all,
-  });
-  transactions.clear();
-  log('new block', newBlock);
-  return newBlock;
-};
+  const mine = () => {
+    log('start mining new block');
+    const lastBlock = blockchain.last;
+    const lastNonce = lastBlock.data.nonce;
+    const nonce = proofOfWork(lastNonce);
+    transactions.add({
+      input: 'coinbase',
+      output: MINER_OUTPUT,
+      amount: 1,
+    });
+    const newBlock = blockchain.add({
+      nonce,
+      transactions: transactions.all,
+    });
+    transactions.clear();
+    log('new block', newBlock.hash);
+    return newBlock;
+  };
 
-const blocks = () => {
-  log('get blocks');
-  return blockchain.chain;
-};
+  const blocks = () => {
+    log('get blocks');
+    return blockchain.chain;
+  };
 
-const transactionAdd = (data) => {
-  log('add new transaction', data);
-  transactions.add(data);
-  return transactions.all;
-};
+  const transactionAdd = (data) => {
+    log(`add new transaction ${JSON.stringify(data)}`);
+    transactions.add(data);
+    return transactions.all;
+  };
 
-const transactionsList = () => {
-  log('list pending transactions');
-  return transactions.all;
-};
+  const transactionsList = () => {
+    log('list pending transactions');
+    return transactions.all;
+  };
 
-module.exports = {
-  mine,
-  blocks,
-  transactionAdd,
-  transactionsList,
+  return {
+    mine,
+    blocks,
+    transactionAdd,
+    transactionsList,
+  };
 };

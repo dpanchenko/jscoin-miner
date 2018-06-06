@@ -3,7 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const createDebug = require('debug');
 
-const blockchainService = require('./core/services/blockchain');
+const lokiDB = require('./core/db');
+const serviceCreator = require('./core/services/blockchain');
 
 const log = createDebug(`${config.app.name}:service:log`);
 const error = createDebug(`${config.app.name}:service:error`);
@@ -12,24 +13,28 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.get('/blocks', (req, res) =>
-  res.json(blockchainService.blocks()));
+lokiDB((db) => {
+  const blockchainService = serviceCreator(db);
 
-app.post('/mine', (req, res) =>
-  res.json(blockchainService.mine(req.body)));
+  app.get('/blocks', (req, res) =>
+    res.json(blockchainService.blocks()));
 
-app.post('/transaction', async (req, res) =>
-  res.json(blockchainService.transactionAdd(req.body)));
+  app.post('/mine', (req, res) =>
+    res.json(blockchainService.mine(req.body)));
 
-app.get('/transactions', async (req, res) =>
-  res.json(blockchainService.transactionsList(req.body)));
+  app.post('/transaction', async (req, res) =>
+    res.json(blockchainService.transactionAdd(req.body)));
 
-app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-  error('server error', err);
-  res.send(err.message || err);
-});
+  app.get('/transactions', async (req, res) =>
+    res.json(blockchainService.transactionsList(req.body)));
 
-app.listen(config.server.port, () => {
-  log(`${config.app.name} v${config.app.version} started`);
-  log(`waiting connections on http://0.0.0.0:${config.server.port}`);
+  app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
+    error('server error', err);
+    res.send(err.message || err);
+  });
+
+  app.listen(config.server.port, () => {
+    log(`${config.app.name} v${config.app.version} started`);
+    log(`waiting connections on http://0.0.0.0:${config.server.port}`);
+  });
 });
