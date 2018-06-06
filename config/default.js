@@ -8,4 +8,7 @@ module.exports = {
   server: {
     port: parseInt(process.env.PORT, 10) || 8080,
   },
+  miner: {
+    output: process.env.MINER_OUTPUT,
+  },
 };

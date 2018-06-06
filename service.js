@@ -1,17 +1,28 @@
 const config = require('config');
 const express = require('express');
+const bodyParser = require('body-parser');
 const createDebug = require('debug');
+
+const blockchainService = require('./core/services/blockchain');
 
 const log = createDebug(`${config.app.name}:service:log`);
 const error = createDebug(`${config.app.name}:service:error`);
 
-process.title = config.app.name;
-
 const app = express();
 
-app.use((req, res) => {
-  res.send('ok');
-});
+app.use(bodyParser.json());
+
+app.get('/blocks', (req, res) =>
+  res.json(blockchainService.blocks()));
+
+app.post('/mine', (req, res) =>
+  res.json(blockchainService.mine(req.body)));
+
+app.post('/transaction', async (req, res) =>
+  res.json(blockchainService.transactionAdd(req.body)));
+
+app.get('/transactions', async (req, res) =>
+  res.json(blockchainService.transactionsList(req.body)));
 
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   error('server error', err);
