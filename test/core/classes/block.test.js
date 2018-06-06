@@ -2,14 +2,14 @@
 const proxyquire = require('proxyquire');
 const { expect } = require('chai');
 const sinon = require('sinon');
-const defaultTimezone = Date.now();
+const defaultTimestamp = Date.now();
 const Block = proxyquire('../../../core/classes/block', {
   '../libs/hash': {
     calculateHash: arg => arg,
   },
 });
 
-sinon.stub(Date, 'now').callsFake(() => defaultTimezone);
+sinon.stub(Date, 'now').callsFake(() => defaultTimestamp);
 
 describe('Block class', function () {
   it('should create an instance of class', function () {
@@ -37,7 +37,7 @@ describe('Block class', function () {
     expect(block.getDataStr()).to.equal(data);
   });
   it('should calculate correct hash for genesis block', function () {
-    const hash = `0${defaultTimezone}genesis0`;
+    const hash = `0${defaultTimestamp}genesis0`;
     const block = new Block();
     expect(block.calculateHash()).to.equal(hash);
   });
@@ -45,7 +45,7 @@ describe('Block class', function () {
     const index = 1;
     const data = 'test';
     const previousHash = 'previousHash';
-    const expectedHash = `${index}${defaultTimezone}${data}${previousHash}`;
+    const expectedHash = `${index}${defaultTimestamp}${data}${previousHash}`;
     const block = new Block({ index, data, previousHash });
     expect(block.calculateHash()).to.equal(expectedHash);
   });
@@ -61,5 +61,18 @@ describe('Block class', function () {
     expect(nextBlock).to.have.property('hash');
     expect(nextBlock.index).to.equal(block.index + 1);
     expect(nextBlock.previousHash).to.equal(block.hash);
+  });
+  it('should serialize self correct', function () {
+    const data = {
+      index: 1,
+      data: {},
+      previousHash: 1,
+    };
+    const block = new Block(data);
+    expect(JSON.parse(block.serialize())).to.eql({
+      ...data,
+      timestamp: defaultTimestamp,
+      hash: block.calculateHash(),
+    });
   });
 });

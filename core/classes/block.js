@@ -30,6 +30,10 @@ class Block {
       previousHash: hash,
     });
   }
+  serialize() {
+    const { index, timestamp, data, previousHash, hash } = this;
+    return JSON.stringify({ index, timestamp, data, previousHash, hash });
+  }
 }
 
 module.exports = Block;
