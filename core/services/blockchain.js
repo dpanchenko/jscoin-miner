@@ -16,6 +16,8 @@ module.exports = (db) => {
   const blockchain = new Chain(db);
   const transactions = new Transactions(db);
 
+  log('Pending transactions', transactions.all.length);
+
   const mine = () => {
     log('start mining new block');
     const lastBlock = blockchain.last;

@@ -1,7 +1,7 @@
 const config = require('config');
 const createDebug = require('debug');
 
-const log = createDebug(`${config.app.name}:classes:chain`);
+const log = createDebug(`${config.app.name}:classes:transactions`);
 
 class Transactions {
   constructor(db) {
