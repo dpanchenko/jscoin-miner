@@ -1,31 +1,98 @@
 /* eslint-disable prefer-arrow-callback */
 const { expect } = require('chai');
+const sinon = require('sinon');
 const Transactions = require('../../../core/classes/transactions');
 
+
+const generateExistingCollectionStub = () => {
+  const collection = {
+    chain: sinon.stub().returns({
+      data: () => [],
+    }),
+    insert: sinon.stub(),
+    clear: sinon.stub(),
+  };
+  const db = {
+    addCollection: sinon.stub(),
+    getCollection: sinon.stub().callsFake(() => collection),
+  };
+  return { db, collection };
+};
+
+const generateNonExistingCollectionStub = () => {
+  const collection = {
+    chain: sinon.stub().returns({
+      data: () => [],
+    }),
+    insert: sinon.stub(),
+    clear: sinon.stub(),
+  };
+  const db = {
+    addCollection: sinon.stub().callsFake(() => collection),
+    getCollection: sinon.stub().callsFake(() => null),
+  };
+  return { db, collection };
+};
+
 describe('Transactions class', function () {
-  it('should create an instance of class', function () {
-    const transactions = new Transactions();
-    expect(transactions instanceof Transactions).to.equal(true);
+  it('should throw if create class without db', function () {
+    expect(function () {
+      const transactions = new Transactions(); // eslint-disable-line
+    }).to.throw('Db not set');
   });
-  it('should have properties', function () {
-    const transactions = new Transactions();
-    expect(transactions).to.have.property('list');
-    expect(transactions).to.have.property('all');
-    expect(transactions).to.have.property('add');
-    expect(transactions).to.have.property('clear');
+  describe('create with existing collection', function () {
+    const { db, collection } = generateExistingCollectionStub();
+    const transactions = new Transactions(db);
+    it('should create an instance of class', function () {
+      expect(transactions instanceof Transactions).to.equal(true);
+    });
+    it('should use correct flow', function () {
+      expect(db.getCollection.called).to.equal(true);
+      expect(db.addCollection.called).to.equal(false);
+      expect(collection.insert.called).to.equal(false);
+      expect(collection.chain.called).to.equal(false);
+      expect(collection.clear.called).to.equal(false);
+    });
+    it('should have properties', function () {
+      expect(transactions).to.have.property('list');
+      expect(transactions).to.have.property('all');
+      expect(transactions).to.have.property('add');
+      expect(transactions).to.have.property('clear');
+    });
+  });
+  describe('create with non existing collection', function () {
+    const { db, collection } = generateNonExistingCollectionStub();
+    const transactions = new Transactions(db);
+    it('should create an instance of class', function () {
+      expect(transactions instanceof Transactions).to.equal(true);
+    });
+    it('should use correct flow', function () {
+      expect(db.getCollection.called).to.equal(true);
+      expect(db.addCollection.called).to.equal(true);
+      expect(collection.insert.called).to.equal(false);
+      expect(collection.chain.called).to.equal(false);
+      expect(collection.clear.called).to.equal(false);
+    });
+    it('should have properties', function () {
+      expect(transactions).to.have.property('list');
+      expect(transactions).to.have.property('all');
+      expect(transactions).to.have.property('add');
+      expect(transactions).to.have.property('clear');
+    });
   });
   it('should have static method', function () {
     expect(Transactions).to.have.property('check');
   });
-  it('should be empty after create', function () {
-    const transactions = new Transactions();
-    expect(transactions.list.length).to.equal(0);
-    expect(transactions.all.length).to.equal(0);
-  });
-  it('should return copy of list', function () {
-    const transactions = new Transactions();
-    expect(transactions.list.length).to.equal(transactions.all.length);
-    expect(transactions.list).not.to.equal(transactions.all);
+  it('should return all transactions (flow)', function () {
+    const { db, collection } = generateExistingCollectionStub();
+    const transactions = new Transactions(db);
+    const all = transactions.all; // eslint-disable-line
+    expect(all instanceof Array).to.equal(true);
+    expect(db.getCollection.called).to.equal(true);
+    expect(db.addCollection.called).to.equal(false);
+    expect(collection.insert.called).to.equal(false);
+    expect(collection.chain.called).to.equal(true);
+    expect(collection.clear.called).to.equal(false);
   });
   it('should check succesfull correct transaction data', function () {
     const checkResult = Transactions.check({
@@ -64,30 +131,34 @@ describe('Transactions class', function () {
       output: 'output',
       amount: 1,
     };
-    const transactions = new Transactions();
+    const { db, collection } = generateExistingCollectionStub();
+    const transactions = new Transactions(db);
     transactions.add(data);
-    expect(transactions.list.length).to.equal(1);
-    expect(transactions.all.length).to.equal(1);
+    expect(db.getCollection.called).to.equal(true);
+    expect(db.addCollection.called).to.equal(false);
+    expect(collection.insert.called).to.equal(true);
+    expect(collection.chain.called).to.equal(true);
+    expect(collection.clear.called).to.equal(false);
   });
   it('should not add incorrect transaction', function () {
     const data = null;
-    const transactions = new Transactions();
+    const { db, collection } = generateExistingCollectionStub();
+    const transactions = new Transactions(db);
     transactions.add(data);
-    expect(transactions.list.length).to.equal(0);
-    expect(transactions.all.length).to.equal(0);
+    expect(db.getCollection.called).to.equal(true);
+    expect(db.addCollection.called).to.equal(false);
+    expect(collection.insert.called).to.equal(false);
+    expect(collection.chain.called).to.equal(true);
+    expect(collection.clear.called).to.equal(false);
   });
   it('should clear successfull', function () {
-    const data = {
-      input: 'input',
-      output: 'output',
-      amount: 1,
-    };
-    const transactions = new Transactions();
-    transactions.add(data);
-    expect(transactions.list.length).to.equal(1);
-    expect(transactions.all.length).to.equal(1);
+    const { db, collection } = generateExistingCollectionStub();
+    const transactions = new Transactions(db);
     transactions.clear();
-    expect(transactions.list.length).to.equal(0);
-    expect(transactions.all.length).to.equal(0);
+    expect(db.getCollection.called).to.equal(true);
+    expect(db.addCollection.called).to.equal(false);
+    expect(collection.insert.called).to.equal(false);
+    expect(collection.chain.called).to.equal(false);
+    expect(collection.clear.called).to.equal(true);
   });
 });

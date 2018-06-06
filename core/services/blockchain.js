@@ -14,7 +14,7 @@ if (!MINER_OUTPUT) {
 
 module.exports = (db) => {
   const blockchain = new Chain(db);
-  const transactions = new Transactions();
+  const transactions = new Transactions(db);
 
   const mine = () => {
     log('start mining new block');

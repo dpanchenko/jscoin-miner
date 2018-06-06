@@ -1,9 +1,21 @@
+const config = require('config');
+const createDebug = require('debug');
+
+const log = createDebug(`${config.app.name}:classes:chain`);
+
 class Transactions {
-  constructor() {
-    this.list = [];
+  constructor(db) {
+    if (!db) {
+      throw new Error('Db not set');
+    }
+    this.list = db.getCollection('transactions');
+    if (this.list === null) {
+      log('transactions collection not exist. creating...');
+      this.list = db.addCollection('transactions');
+    }
   }
   get all() {
-    return Array.prototype.concat(this.list);
+    return this.list.chain().data({ removeMeta: true });
   }
   static check(args) {
     const { input, output, amount } = args || {};
@@ -15,12 +27,12 @@ class Transactions {
   add(data) {
     const transaction = Transactions.check(data);
     if (transaction !== false) {
-      this.list.push(transaction);
+      this.list.insert(transaction);
     }
-    return this.list;
+    return this.list.chain().data({ removeMeta: true });
   }
   clear() {
-    this.list = [];
+    this.list.clear();
   }
 }
 
