@@ -6,12 +6,14 @@ class Block {
       index = 0,
       data = 'genesis',
       previousHash = 0,
+      timestamp = Date.now(),
+      hash,
     } = params || {};
     this.index = index;
-    this.timestamp = Date.now();
+    this.timestamp = timestamp;
     this.data = data;
     this.previousHash = previousHash;
-    this.hash = this.calculateHash();
+    this.hash = hash || this.calculateHash();
   }
   getDataStr() {
     const { data } = this;
