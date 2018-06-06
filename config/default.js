@@ -11,4 +11,7 @@ module.exports = {
   miner: {
     output: process.env.MINER_OUTPUT,
   },
+  db: {
+    path: process.env.LOKI_DB_PATH,
+  },
 };

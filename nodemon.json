@@ -1,4 +1,4 @@
 {
   "verbose": true,
-  "ignore": ["node_modules/*", "public/*", "test/*"]
+  "ignore": ["node_modules/*", "public/*", "test/*", "db.json"]
 }
