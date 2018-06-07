@@ -1,40 +1,44 @@
-const { calculateHash } = require('../libs/hash');
+const { proofOfWork, stringifyData, calculateHash } = require('../libs/pow');
 
 class Block {
   constructor(params) {
     const {
       index = 0,
-      data = 'genesis',
-      previousHash = 0,
       timestamp = Date.now(),
+      data = 'genesis',
+      previousHash = '',
+      nonce = 0,
       hash,
     } = params || {};
     this.index = index;
     this.timestamp = timestamp;
     this.data = data;
+    this.nonce = nonce;
     this.previousHash = previousHash;
-    this.hash = hash || this.calculateHash();
+    this.hash = hash || calculateHash(this);
   }
-  getDataStr() {
-    const { data } = this;
-    return typeof data === 'object' ? JSON.stringify(data) : data;
-  }
-  calculateHash() {
-    const { index, timestamp, previousHash } = this;
-    const data = this.getDataStr();
-    return calculateHash(`${index}${timestamp}${data}${previousHash}`);
-  }
-  nextBlock(data) {
+  async generateNextBlock(data) {
     const { index, hash } = this;
-    return new Block({
-      data,
+    const blockData = {
       index: index + 1,
+      timestamp: Date.now(),
+      data,
       previousHash: hash,
+    };
+    const proof = await proofOfWork(blockData);
+
+    if (!proof) {
+      return null;
+    }
+
+    return new Block({
+      ...blockData,
+      ...proof,
     });
   }
   serialize() {
-    const { index, timestamp, data, previousHash, hash } = this;
-    return JSON.stringify({ index, timestamp, data, previousHash, hash });
+    const { index, timestamp, data, previousHash, nonce, hash } = this;
+    return stringifyData({ index, timestamp, data, previousHash, nonce, hash });
   }
 }
 

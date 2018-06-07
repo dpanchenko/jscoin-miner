@@ -2,12 +2,30 @@
 const proxyquire = require('proxyquire');
 const { expect } = require('chai');
 const sinon = require('sinon');
-const defaultTimestamp = Date.now();
+
+const calculateHashSpy = sinon.spy();
+const stringifyDataSpy = sinon.spy();
+const proofOfWorkStub = sinon.stub().callsFake(({ data }) =>
+  Promise.resolve(data === 'fail' ? null : { hash: 'hash', nonce: 0 }));
+
 const Block = proxyquire('../../../core/classes/block', {
-  '../libs/hash': {
-    calculateHash: arg => arg,
+  '../libs/pow': {
+    proofOfWork: proofOfWorkStub,
+    stringifyData: stringifyDataSpy,
+    calculateHash: calculateHashSpy,
   },
 });
+
+const defaultTimestamp = Date.now();
+
+const blockDataMock = {
+  index: 1,
+  timestamp: Date.now(),
+  data: 'data',
+  previousHash: '0',
+  nonce: 0,
+  hash: '',
+};
 
 sinon.stub(Date, 'now').callsFake(() => defaultTimestamp);
 
@@ -22,57 +40,23 @@ describe('Block class', function () {
     expect(block).to.have.property('timestamp');
     expect(block).to.have.property('data');
     expect(block).to.have.property('previousHash');
+    expect(block).to.have.property('nonce');
     expect(block).to.have.property('hash');
   });
-  it('should return correct data if data is object', function () {
-    const data = {
-      test: 1,
-    };
-    const block = new Block({ data });
-    expect(block.getDataStr()).to.equal(JSON.stringify(data));
+  it('when serialize should call stringifyData from pow library', function () {
+    const block = new Block(blockDataMock);
+    block.serialize();
+    expect(stringifyDataSpy.called).to.eql(true);
+    stringifyDataSpy.resetHistory();
   });
-  it('should return correct data if data is string', function () {
-    const data = 'string';
-    const block = new Block({ data });
-    expect(block.getDataStr()).to.equal(data);
-  });
-  it('should calculate correct hash for genesis block', function () {
-    const hash = `0${defaultTimestamp}genesis0`;
+  it('should generate next block and return it', async function () {
     const block = new Block();
-    expect(block.calculateHash()).to.equal(hash);
-  });
-  it('should calculate correct hash for regular block', function () {
-    const index = 1;
-    const data = 'test';
-    const previousHash = 'previousHash';
-    const expectedHash = `${index}${defaultTimestamp}${data}${previousHash}`;
-    const block = new Block({ index, data, previousHash });
-    expect(block.calculateHash()).to.equal(expectedHash);
-  });
-  it('should return correct next block', function () {
-    const block = new Block();
-    const nextBlock = block.nextBlock('test');
+    const nextBlock = await block.generateNextBlock('test data');
     expect(nextBlock instanceof Block).to.equal(true);
-    expect(nextBlock).not.to.equal(block);
-    expect(nextBlock).to.have.property('index');
-    expect(nextBlock).to.have.property('timestamp');
-    expect(nextBlock).to.have.property('data');
-    expect(nextBlock).to.have.property('previousHash');
-    expect(nextBlock).to.have.property('hash');
-    expect(nextBlock.index).to.equal(block.index + 1);
-    expect(nextBlock.previousHash).to.equal(block.hash);
   });
-  it('should serialize self correct', function () {
-    const data = {
-      index: 1,
-      data: {},
-      previousHash: 1,
-    };
-    const block = new Block(data);
-    expect(JSON.parse(block.serialize())).to.eql({
-      ...data,
-      timestamp: defaultTimestamp,
-      hash: block.calculateHash(),
-    });
+  it('should fail to generate next block and return null', async function () {
+    const block = new Block();
+    const nextBlock = await block.generateNextBlock('fail');
+    expect(nextBlock).to.equal(null);
   });
 });

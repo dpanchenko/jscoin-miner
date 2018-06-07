@@ -36,30 +36,33 @@ class Chain {
     }
   }
   get chain() {
-    return this.list;
+    return this.blocks.chain().data({ removeMeta: true });
   }
   get last() {
     const block = this.blocks.by('key', this.tail);
     if (block) {
-      return new Block(block.value);
+      return new Block(JSON.parse(block.value));
     }
     return null;
   }
-  add(data) {
+  async add(data) {
     const lastBlock = this.last;
-    if (lastBlock) {
-      const newBlock = lastBlock.nextBlock(data);
-      this.blocks.insert({
-        key: newBlock.hash,
-        value: newBlock.serialize(),
-      });
-      const tail = this.blocks.by('key', this.tailKey);
-      tail.value = newBlock.hash;
-      this.blocks.update(tail);
-      this.tail = newBlock.hash;
-      return newBlock;
+    if (!lastBlock) {
+      return null;
     }
-    return null;
+    const newBlock = await lastBlock.generateNextBlock(data);
+    if (!newBlock) {
+      return null;
+    }
+    this.blocks.insert({
+      key: newBlock.hash,
+      value: newBlock.serialize(),
+    });
+    const tail = this.blocks.by('key', this.tailKey);
+    tail.value = newBlock.hash;
+    this.blocks.update(tail);
+    this.tail = newBlock.hash;
+    return newBlock;
   }
 }
 
