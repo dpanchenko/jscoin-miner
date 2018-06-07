@@ -2,6 +2,7 @@ const config = require('config');
 const createDebug = require('debug');
 const Chain = require('../classes/chain');
 const Transactions = require('../classes/transactions');
+const TransactionCoinbase = require('../classes/tcoinbase');
 
 const log = createDebug(`${config.app.name}:service:blockchain`);
 
@@ -25,12 +26,13 @@ module.exports = (db) => {
     try {
       const newBlock = await blockchain.add({
         transactions: [
-          ...trans,
-          {
-            input: 'coinbase',
-            output: MINER_OUTPUT,
-            amount: 1,
-          },
+          new TransactionCoinbase(MINER_OUTPUT),
+          // ...trans,
+          // {
+          //   input: 'coinbase',
+          //   output: MINER_OUTPUT,
+          //   amount: 1,
+          // },
         ],
       });
       if (!newBlock) {
