@@ -2,7 +2,6 @@ const config = require('config');
 const createDebug = require('debug');
 const Chain = require('../classes/chain');
 const Transactions = require('../classes/transactions');
-const { proofOfWork } = require('../libs/pow');
 
 const log = createDebug(`${config.app.name}:service:blockchain`);
 
@@ -18,23 +17,32 @@ module.exports = (db) => {
 
   log('Pending transactions', transactions.all.length);
 
-  const mine = () => {
+  const mine = async () => {
     log('start mining new block');
-    const lastBlock = blockchain.last;
-    const lastNonce = lastBlock.data.nonce;
-    const nonce = proofOfWork(lastNonce);
-    transactions.add({
-      input: 'coinbase',
-      output: MINER_OUTPUT,
-      amount: 1,
-    });
-    const newBlock = blockchain.add({
-      nonce,
-      transactions: transactions.all,
-    });
+
+    const trans = transactions.all;
     transactions.clear();
-    log('new block', newBlock.hash);
-    return newBlock;
+    try {
+      const newBlock = await blockchain.add({
+        transactions: [
+          ...trans,
+          {
+            input: 'coinbase',
+            output: MINER_OUTPUT,
+            amount: 1,
+          },
+        ],
+      });
+      if (!newBlock) {
+        throw new Error('New block created failed');
+      }
+      log('new block', newBlock.hash);
+      return newBlock;
+    } catch (e) {
+      log(e.message);
+      trans.map(item => transactions.add(item));
+      return null;
+    }
   };
 
   const blocks = () => {

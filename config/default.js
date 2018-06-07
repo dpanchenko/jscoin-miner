@@ -10,6 +10,7 @@ module.exports = {
   },
   miner: {
     output: process.env.MINER_OUTPUT,
+    complexity: parseInt(process.env.COMPLEXITY, 10) || 0,
   },
   db: {
     path: process.env.LOKI_DB_PATH,
