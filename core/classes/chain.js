@@ -36,7 +36,7 @@ class Chain {
     }
   }
   get chain() {
-    return this.list;
+    return this.blocks.chain().data({ removeMeta: true });
   }
   get last() {
     const block = this.blocks.by('key', this.tail);
@@ -50,7 +50,7 @@ class Chain {
     if (!lastBlock) {
       return null;
     }
-    const newBlock = await lastBlock.nextBlock(data);
+    const newBlock = await lastBlock.generateNextBlock(data);
     if (!newBlock) {
       return null;
     }

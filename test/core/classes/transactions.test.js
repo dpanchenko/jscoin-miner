@@ -3,7 +3,6 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const Transactions = require('../../../core/classes/transactions');
 
-
 const generateExistingCollectionStub = () => {
   const collection = {
     chain: sinon.stub().returns({

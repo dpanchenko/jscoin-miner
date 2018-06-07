@@ -4,8 +4,11 @@ const sinon = require('sinon');
 const { expect } = require('chai');
 
 class StubBlock {
-  nextBlock() {
-    return this;
+  generateNextBlock(data) {
+    if (data === 'fail') {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(this);
   }
 }
 
@@ -15,18 +18,21 @@ const Chain = proxyquire('../../../core/classes/chain', {
 
 const keyValueMock = {
   key: 'key',
-  value: 'value',
+  value: '{}',
 };
 
 const generateExistingCollectionStub = () => {
   const collection = {
     insert: sinon.stub(),
-    by: sinon.stub().callsFake(() => keyValueMock),
+    by: sinon.stub().returns(keyValueMock),
     update: sinon.stub(),
+    chain: sinon.stub().returns({
+      data: () => [],
+    }),
   };
   const db = {
-    addCollection: sinon.stub().callsFake(() => collection),
-    getCollection: sinon.stub().callsFake(() => collection),
+    addCollection: sinon.stub().returns(collection),
+    getCollection: sinon.stub().returns(collection),
   };
   return { db, collection };
 };
@@ -34,32 +40,35 @@ const generateExistingCollectionStub = () => {
 const generateNonExistingCollectionStub = () => {
   const collection = {
     insert: sinon.stub(),
-    by: sinon.stub().callsFake(() => keyValueMock),
+    by: sinon.stub().returns(keyValueMock),
     update: sinon.stub(),
+    chain: sinon.stub().returns({
+      data: () => [],
+    }),
   };
   const db = {
-    addCollection: sinon.stub().callsFake(() => collection),
-    getCollection: sinon.stub().callsFake(() => null),
+    addCollection: sinon.stub().returns(collection),
+    getCollection: sinon.stub().returns(null),
   };
   return { db, collection };
 };
 
 const generateExistingCollectionWithoutTailStub = () => {
   const collection = {
-    by: sinon.stub().callsFake(() => null),
+    by: sinon.stub().returns(null),
   };
   const db = {
-    getCollection: sinon.stub().callsFake(() => collection),
+    getCollection: sinon.stub().returns(collection),
   };
   return { db, collection };
 };
 
 const generateExistingCollectionLastBlockStub = () => {
   const collection = {
-    by: sinon.stub().callsFake(() => new StubBlock()),
+    by: sinon.stub().returns(keyValueMock),
   };
   const db = {
-    getCollection: sinon.stub().callsFake(() => collection),
+    getCollection: sinon.stub().returns(collection),
   };
   return { db, collection };
 };
@@ -73,7 +82,7 @@ const generateExistingCollectionLastBlockNullStub = () => {
       .returns(null),
   };
   const db = {
-    getCollection: sinon.stub().callsFake(() => collection),
+    getCollection: sinon.stub().returns(collection),
   };
   return { db, collection };
 };
@@ -86,7 +95,7 @@ const generateExistingCollectionAddBlockStub = () => {
       .returns(keyValueMock)
       .onSecondCall()
       .returns({
-        value: 'value',
+        value: '{}',
       })
       .onThirdCall()
       .returns({})
@@ -171,16 +180,16 @@ describe('Chain class', function () {
     const chain = new Chain(db);
     expect(chain.last).to.equal(null);
   });
-  it('should return null when add block to non consistent blockchain', function () {
+  it('should return null when add block to non consistent blockchain', async function () {
     const { db } = generateExistingCollectionLastBlockNullStub();
     const chain = new Chain(db);
-    const result = chain.add('data');
+    const result = await chain.add('data');
     expect(result).to.equal(null);
   });
-  describe('add new block to chain', function () {
+  describe('add new block to chain', async function () {
     const { db, collection } = generateExistingCollectionAddBlockStub();
     const chain = new Chain(db);
-    const newBlock = chain.add({});
+    const newBlock = await chain.add({});
     it('should return added block', function () {
       expect(newBlock instanceof StubBlock).to.equal(true);
     });
@@ -189,6 +198,20 @@ describe('Chain class', function () {
       expect(collection.by.called).to.equal(true);
       expect(collection.insert.called).to.equal(true);
       expect(collection.update.called).to.equal(true);
+    });
+  });
+  describe('fail add new block to chain', async function () {
+    const { db, collection } = generateExistingCollectionAddBlockStub();
+    const chain = new Chain(db);
+    const newBlock = await chain.add('fail');
+    it('should return null instead  block', function () {
+      expect(newBlock).to.equal(null);
+    });
+    it('should following flow', function () {
+      expect(db.getCollection.called).to.equal(true);
+      expect(collection.by.called).to.equal(true);
+      expect(collection.insert.called).to.equal(false);
+      expect(collection.update.called).to.equal(false);
     });
   });
 });

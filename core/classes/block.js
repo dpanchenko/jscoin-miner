@@ -1,16 +1,12 @@
-const config = require('config');
-const { calculateHash } = require('../libs/hash');
-const { proofOfWork, stringifyData } = require('../libs/pow');
-
-const { complexity: COMPLEXITY } = config.miner;
+const { proofOfWork, stringifyData, calculateHash } = require('../libs/pow');
 
 class Block {
   constructor(params) {
     const {
       index = 0,
+      timestamp = Date.now(),
       data = 'genesis',
       previousHash = '',
-      timestamp = Date.now(),
       nonce = 0,
       hash,
     } = params || {};
@@ -19,35 +15,30 @@ class Block {
     this.data = data;
     this.nonce = nonce;
     this.previousHash = previousHash;
-    this.hash = hash || this.calculateHash();
+    this.hash = hash || calculateHash(this);
   }
-  calculateHash() {
-    const { index, timestamp, previousHash, nonce } = this;
-    const data = stringifyData({ index, timestamp, previousHash, nonce });
-    return calculateHash(`${index}${timestamp}${data}${previousHash}${COMPLEXITY}${nonce}`);
-  }
-  async nextBlock(data) {
+  async generateNextBlock(data) {
     const { index, hash } = this;
-    const newBlockData = {
-      data: stringifyData(data),
+    const blockData = {
       index: index + 1,
-      previousHash: hash,
       timestamp: Date.now(),
+      data,
+      previousHash: hash,
     };
-    const proof = await proofOfWork(newBlockData);
+    const proof = await proofOfWork(blockData);
 
     if (!proof) {
       return null;
     }
 
     return new Block({
-      ...newBlockData,
+      ...blockData,
       ...proof,
     });
   }
   serialize() {
     const { index, timestamp, data, previousHash, nonce, hash } = this;
-    return JSON.stringify({ index, timestamp, data, previousHash, nonce, hash });
+    return stringifyData({ index, timestamp, data, previousHash, nonce, hash });
   }
 }
 

@@ -1,5 +1,5 @@
 const config = require('config');
-const { calculateHash } = require('./hash');
+const sha256hash = require('./hash');
 
 const { complexity: COMPLEXITY } = config.miner;
 
@@ -12,26 +12,43 @@ const INITIAL_NONCE = 0;
 
 const stringifyData = data => (typeof data === 'object' ? JSON.stringify(data) : data);
 
-const prepareBlockData = (data, nonce) => `${data}${COMPLEXITY}${nonce}`;
-
-const calculate = (data, nonce, resolve, reject) => {
-  if (nonce === Number.MAX_SAFE_INTEGER) {
-    return reject();
-  }
-  return setTimeout(() => {
-    const preparedData = prepareBlockData(stringifyData(data), nonce);
-    const hash = calculateHash(preparedData);
-    if (hash.indexOf(TARGET) === 0) {
-      return resolve({ hash, nonce });
-    }
-    return calculate(data, nonce + 1, resolve, reject);
-  }, 0);
+const calculateHash = (params) => {
+  const {
+    index = '',
+    timestamp = '',
+    data = '',
+    previousHash = '',
+    nonce = 0,
+  } = params || {};
+  const value = `${index}${timestamp}${stringifyData(data)}${previousHash}${nonce}${COMPLEXITY}`;
+  return sha256hash(value);
 };
 
+const validateBlock = blockData =>
+  blockData.hash === calculateHash(blockData);
 
-const proofOfWork = data => new Promise((resolve, reject) => calculate(data, INITIAL_NONCE, resolve, reject));
+const checkHashWithTarget = hash => hash.indexOf(TARGET) === 0;
+
+const calculate = (blockData, nonce, resolve) =>
+  setTimeout(() => {
+    const hash = calculateHash({
+      ...blockData,
+      nonce,
+    });
+    if (checkHashWithTarget(hash)) {
+      return resolve({ hash, nonce });
+    }
+    return calculate(blockData, nonce + 1, resolve);
+  }, 0);
+
+const proofOfWork = blockData =>
+  new Promise(resolve =>
+    calculate(blockData, INITIAL_NONCE, resolve));
 
 module.exports = {
-  proofOfWork,
+  checkHashWithTarget,
   stringifyData,
+  calculateHash,
+  validateBlock,
+  proofOfWork,
 };
