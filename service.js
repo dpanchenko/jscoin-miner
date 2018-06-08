@@ -19,6 +19,11 @@ lokiDB((db) => {
   app.get('/blocks', (req, res) =>
     res.json(blockchainService.blocks()));
 
+  app.get(['/balance', '/balance/:address'], async (req, res) => {
+    const result = await blockchainService.balance(req.params.address);
+    res.json(result);
+  });
+
   app.post('/mine', async (req, res) => {
     const result = await blockchainService.mine(req.body);
     res.json(result);

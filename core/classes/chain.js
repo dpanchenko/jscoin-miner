@@ -36,7 +36,18 @@ class Chain {
     }
   }
   get chain() {
-    return this.blocks.chain().data({ removeMeta: true });
+    return this.blocks.chain([
+      {
+        type: 'find',
+        value: {
+          key: { $ne: 'tail' },
+        },
+      },
+      {
+        type: 'map',
+        value: ({ value }) => JSON.parse(value),
+      },
+    ]).data({ removeMeta: true });
   }
   get last() {
     const block = this.blocks.by('key', this.tail);
