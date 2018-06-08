@@ -81,7 +81,7 @@ class Chain {
       log('use local chain as consistent');
       return;
     }
-    log('use remote chain as consistent');
+    log('use remote chain as consistent', remoteLongestChain);
     this.blocks.clear();
     this.blocks.insert(remoteLongestChain.blocks.map(block => ({
       key: block.hash,
@@ -91,6 +91,7 @@ class Chain {
       key: 'tail',
       value: remoteLongestChain.tail,
     });
+    this.tail = remoteLongestChain.tail;
   }
 }
 
