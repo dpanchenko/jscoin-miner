@@ -58,14 +58,18 @@ lokiDB((db) => {
   });
 
   socket.on('miners', async (data) => {
-    log('We got new miners list', JSON.stringify(data));
-    minersPool = data;
-    await blockchainService.syncronizeChain(minersPool);
+    minersPool = data.filter(({ id }) => id !== minerId);
+    log('We got new miners list', JSON.stringify(minersPool));
+    if (minersPool.length) {
+      await blockchainService.syncronizeChain(minersPool);
+    }
   });
 
   socket.on('block', async (data) => {
     log('Someone create new block. Need to update chain', JSON.stringify(data));
-    await blockchainService.syncronizeChain(minersPool);
+    if (minersPool.length) {
+      await blockchainService.syncronizeChain(minersPool);
+    }
   });
 
   socket.on('disconnect', () => {
