@@ -21,6 +21,7 @@ app.use(bodyParser.json());
 
 lokiDB((db) => {
   const blockchainService = serviceCreator(db);
+  let minersPool = [];
 
   app.get('/blocks', (req, res) =>
     res.json(blockchainService.blocks()));
@@ -58,10 +59,12 @@ lokiDB((db) => {
 
   socket.on('miners', (data) => {
     log('We got new miners list', JSON.stringify(data));
+    minersPool = data;
   });
 
   socket.on('block', (data) => {
     log('Someone create new block. Need to update chain', JSON.stringify(data));
+    blockchainService.syncronizeChain(minersPool);
   });
 
   socket.on('disconnect', () => {

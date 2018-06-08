@@ -54,7 +54,10 @@ module.exports = (db) => {
 
   const blocks = () => {
     log('get blocks');
-    return blockchain.chain;
+    return {
+      blocks: blockchain.chain,
+      tail: blockchain.last.hash,
+    };
   };
 
   const transactionAdd = (data) => {
@@ -68,11 +71,17 @@ module.exports = (db) => {
     return transactions.all;
   };
 
+  const syncronizeChain = async (data) => {
+    log(`sync chain with remote miner node ${JSON.stringify(data)}`);
+    await blockchain.consensus(data);
+  };
+
   return {
     mine,
     balance,
     blocks,
     transactionAdd,
     transactionsList,
+    syncronizeChain,
   };
 };

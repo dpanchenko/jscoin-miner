@@ -1,5 +1,6 @@
 const config = require('config');
 const createDebug = require('debug');
+const request = require('request-promise-native');
 const Block = require('./block');
 
 const log = createDebug(`${config.app.name}:classes:chain`);
@@ -74,6 +75,29 @@ class Chain {
     this.blocks.update(tail);
     this.tail = newBlock.hash;
     return newBlock;
+  }
+  async consensus(miners) {
+    const remoteChains = await Promise.all(miners.map(miner => request(`${miner.address}/blocks`)));
+    let remoteLongestChain = remoteChains[0];
+    remoteChains.foEach((chain) => {
+      if (remoteLongestChain.block.length < chain.blocks.length) {
+        remoteLongestChain = chain;
+      }
+    });
+    if (this.chain.length <= remoteLongestChain.blocks.length) {
+      log('use local chain as consistent');
+      return;
+    }
+    log('use remote chain as consistent');
+    this.blocks.clear();
+    this.blocks.insert(remoteLongestChain.blocks.map(block => ({
+      key: block.hash,
+      value: block,
+    })));
+    this.blocks.insert({
+      key: 'tail',
+      value: remoteLongestChain.tail,
+    });
   }
 }
 
