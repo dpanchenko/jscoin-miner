@@ -12,8 +12,20 @@ class StubBlock {
   }
 }
 
+const remoteChainResponseMock = {
+  blocks: [
+    {
+      hash: '',
+    },
+  ],
+  tail: 'testtail',
+};
+
 const Chain = proxyquire('../../../core/classes/chain', {
   './block': StubBlock,
+  'request-promise-native': () => Promise.resolve([
+    JSON.stringify(remoteChainResponseMock),
+  ]),
 });
 
 const keyValueMock = {
@@ -26,9 +38,29 @@ const generateExistingCollectionStub = () => {
     insert: sinon.stub(),
     by: sinon.stub().returns(keyValueMock),
     update: sinon.stub(),
+    clear: sinon.stub(),
     chain: sinon.stub().returns({
       find: () => ({
         data: () => [],
+      }),
+    }),
+  };
+  const db = {
+    addCollection: sinon.stub().returns(collection),
+    getCollection: sinon.stub().returns(collection),
+  };
+  return { db, collection };
+};
+
+const generateExistingCollectionWithBlocksStub = () => {
+  const collection = {
+    insert: sinon.stub(),
+    by: sinon.stub().returns(keyValueMock),
+    update: sinon.stub(),
+    clear: sinon.stub(),
+    chain: sinon.stub().returns({
+      find: () => ({
+        data: () => [{}, {}],
       }),
     }),
   };
@@ -45,7 +77,9 @@ const generateNonExistingCollectionStub = () => {
     by: sinon.stub().returns(keyValueMock),
     update: sinon.stub(),
     chain: sinon.stub().returns({
-      data: () => [],
+      find: () => ({
+        data: () => [],
+      }),
     }),
   };
   const db = {
@@ -205,6 +239,35 @@ describe('Chain class', function () {
     expect(newBlock).to.equal(null);
     expect(db.getCollection.called).to.equal(true);
     expect(collection.by.called).to.equal(true);
+    expect(collection.insert.called).to.equal(false);
+    expect(collection.update.called).to.equal(false);
+  });
+  it('consensus should use remote chain', async function () {
+    const { db, collection } = generateExistingCollectionStub();
+    const chain = new Chain(db);
+    await chain.consensus([
+      {
+        address: 'asd',
+      },
+    ]);
+    expect(chain.tail).to.equal(remoteChainResponseMock.tail);
+    expect(db.getCollection.called).to.equal(true);
+    expect(collection.by.called).to.equal(true);
+    expect(collection.clear.called).to.equal(true);
+    expect(collection.insert.called).to.equal(true);
+    expect(collection.update.called).to.equal(false);
+  });
+  it('consensus should use local chain', async function () {
+    const { db, collection } = generateExistingCollectionWithBlocksStub();
+    const chain = new Chain(db);
+    await chain.consensus([
+      {
+        address: 'asd',
+      },
+    ]);
+    expect(db.getCollection.called).to.equal(true);
+    expect(collection.by.called).to.equal(true);
+    expect(collection.clear.called).to.equal(false);
     expect(collection.insert.called).to.equal(false);
     expect(collection.update.called).to.equal(false);
   });
