@@ -5,7 +5,7 @@ class Block {
     const {
       index = 0,
       timestamp = Date.now(),
-      data = 'genesis',
+      data = {},
       previousHash = '',
       nonce = 0,
       hash,
