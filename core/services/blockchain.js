@@ -49,7 +49,7 @@ module.exports = (db) => {
   const balance = (address = MINER_OUTPUT) => {
     const wallet = new Wallet(address, blockchain, transactions);
     log('get balance');
-    return wallet.ballance();
+    return wallet.balance();
   };
 
   const blocks = () => {

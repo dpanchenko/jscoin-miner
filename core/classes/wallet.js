@@ -32,7 +32,7 @@ class Wallet {
       return acc;
     }, { amount: 0, debet: [], credit: [] });
   }
-  ballance() {
+  balance() {
     return new Promise(resolve =>
       asyncReduce(this.blockchain.chain, { amount: 0, debet: [], credit: [] }, (acc, block, cb) => {
         const { transactions = [] } = block.data;
@@ -50,8 +50,8 @@ class Wallet {
   async pay(amount, target) {
     const { confirmed, pending } = await this.balance();
     const limit = pending.amount >= 0 ? confirmed.amount : confirmed.amount + pending.amount;
-    if (limit > amount && this.address !== target) {
-      this.transaction.add({
+    if (limit >= amount && this.address !== target) {
+      this.transactions.add({
         input: this.address,
         output: target,
         amount,
