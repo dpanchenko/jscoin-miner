@@ -2,14 +2,20 @@ const config = require('config');
 const express = require('express');
 const bodyParser = require('body-parser');
 const createDebug = require('debug');
+const socketIO = require('socket.io-client');
 
 const lokiDB = require('./core/db');
+const sha256hash = require('./core/libs/hash');
 const serviceCreator = require('./core/services/blockchain');
 
 const log = createDebug(`${config.app.name}:service:log`);
 const error = createDebug(`${config.app.name}:service:error`);
 
 const app = express();
+
+const socket = socketIO(config.miner.orchestrator);
+
+const minerId = sha256hash(`${config.server.address}:${config.server.port}`);
 
 app.use(bodyParser.json());
 
@@ -26,6 +32,7 @@ lokiDB((db) => {
 
   app.post('/mine', async (req, res) => {
     const result = await blockchainService.mine(req.body);
+    socket.emit('block', { minerId });
     res.json(result);
   });
 
@@ -42,6 +49,27 @@ lokiDB((db) => {
 
   app.listen(config.server.port, () => {
     log(`${config.app.name} v${config.app.version} started`);
-    log(`waiting connections on http://0.0.0.0:${config.server.port}`);
+    log(`waiting connections on http://${config.server.address}:${config.server.port}`);
+  });
+
+  socket.on('connect', () => {
+    log('Connected successfully to orchestrator');
+  });
+
+  socket.on('miners', (data) => {
+    log('We got new miners list', JSON.stringify(data));
+  });
+
+  socket.on('block', (data) => {
+    log('Someone create new block. Need to update chain', JSON.stringify(data));
+  });
+
+  socket.on('disconnect', () => {
+    log('Connected successfully to orchestrator');
+  });
+
+  socket.emit('hello', {
+    id: minerId,
+    address: `http://${config.server.address}:${config.server.port}`,
   });
 });
