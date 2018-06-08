@@ -55,8 +55,8 @@ module.exports = (db) => {
   const blocks = () => {
     log('get blocks');
     return {
-      blocks: blockchain.chain,
-      tail: blockchain.last.hash,
+      blocks: blockchain.chain(),
+      tail: blockchain.last().hash,
     };
   };
 

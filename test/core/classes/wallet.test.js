@@ -47,13 +47,13 @@ const mockStatement = {
 };
 
 const mockBlockchain = {
-  chain: [
+  chain: () => ([
     {
       data: {
         transactions: mockTransactionsList,
       },
     },
-  ],
+  ]),
 };
 const mockTransactions = {
   all: mockTransactionsList,

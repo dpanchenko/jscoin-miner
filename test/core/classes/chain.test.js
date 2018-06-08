@@ -27,7 +27,9 @@ const generateExistingCollectionStub = () => {
     by: sinon.stub().returns(keyValueMock),
     update: sinon.stub(),
     chain: sinon.stub().returns({
-      data: () => [],
+      find: () => ({
+        data: () => [],
+      }),
     }),
   };
   const db = {
@@ -173,12 +175,12 @@ describe('Chain class', function () {
   it('should have correct last block in consistent blockchain', function () {
     const { db } = generateExistingCollectionLastBlockStub();
     const chain = new Chain(db);
-    expect(chain.last instanceof StubBlock).to.equal(true);
+    expect(chain.last() instanceof StubBlock).to.equal(true);
   });
   it('should return null instead last block in non consistent blockchain', function () {
     const { db } = generateExistingCollectionLastBlockNullStub();
     const chain = new Chain(db);
-    expect(chain.last).to.equal(null);
+    expect(chain.last()).to.equal(null);
   });
   it('should return null when add block to non consistent blockchain', async function () {
     const { db } = generateExistingCollectionLastBlockNullStub();

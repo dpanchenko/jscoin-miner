@@ -36,17 +36,12 @@ class Chain {
       throw new Error('Blockchain broken. Tail is not exist');
     }
   }
-  get chain() {
-    return this.blocks.chain([
-      {
-        type: 'find',
-        value: {
-          key: { $ne: 'tail' },
-        },
-      },
-    ]).data({ removeMeta: true }).map(item => item.value);
+  chain() {
+    return this.blocks.chain().find({
+      key: { $ne: 'tail' },
+    }).data({ removeMeta: true }).map(({ value }) => value);
   }
-  get last() {
+  last() {
     const block = this.blocks.by('key', this.tail);
     if (block) {
       return new Block(block.value);
@@ -54,7 +49,7 @@ class Chain {
     return null;
   }
   async add(data) {
-    const lastBlock = this.last;
+    const lastBlock = this.last();
     if (!lastBlock) {
       return null;
     }
@@ -73,6 +68,7 @@ class Chain {
     return newBlock;
   }
   async consensus(miners) {
+    log('call consensus method');
     const remoteChains = await Promise.all(miners.map(miner => request(`${miner.address}/blocks`)));
     let remoteLongestChain;
     remoteChains.forEach((chain) => {
@@ -81,7 +77,7 @@ class Chain {
         remoteLongestChain = chainData;
       }
     });
-    if (this.chain.length > remoteLongestChain.blocks.length) {
+    if (this.chain.length >= remoteLongestChain.blocks.length) {
       log('use local chain as consistent');
       return;
     }
