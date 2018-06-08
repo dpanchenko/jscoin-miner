@@ -72,7 +72,7 @@ module.exports = (db) => {
   };
 
   const syncronizeChain = async (data) => {
-    log(`sync chain with remote miner node ${JSON.stringify(data)}`);
+    log(`sync chain with remote miner nodes ${JSON.stringify(data)}`);
     await blockchain.consensus(data);
   };
 

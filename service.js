@@ -57,14 +57,15 @@ lokiDB((db) => {
     log('Connected successfully to orchestrator');
   });
 
-  socket.on('miners', (data) => {
+  socket.on('miners', async (data) => {
     log('We got new miners list', JSON.stringify(data));
     minersPool = data;
+    await blockchainService.syncronizeChain(minersPool);
   });
 
-  socket.on('block', (data) => {
+  socket.on('block', async (data) => {
     log('Someone create new block. Need to update chain', JSON.stringify(data));
-    blockchainService.syncronizeChain(minersPool);
+    await blockchainService.syncronizeChain(minersPool);
   });
 
   socket.on('disconnect', () => {

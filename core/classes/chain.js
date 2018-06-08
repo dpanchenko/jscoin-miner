@@ -78,10 +78,11 @@ class Chain {
   }
   async consensus(miners) {
     const remoteChains = await Promise.all(miners.map(miner => request(`${miner.address}/blocks`)));
-    let remoteLongestChain = remoteChains[0];
-    remoteChains.foEach((chain) => {
-      if (remoteLongestChain.block.length < chain.blocks.length) {
-        remoteLongestChain = chain;
+    let remoteLongestChain;
+    remoteChains.forEach((chain) => {
+      const chainData = JSON.parse(chain);
+      if (!remoteLongestChain || remoteLongestChain.blocks.length < chainData.blocks.length) {
+        remoteLongestChain = chainData;
       }
     });
     if (this.chain.length <= remoteLongestChain.blocks.length) {
