@@ -22,7 +22,7 @@ class Chain {
       const genesisBlock = new Block();
       this.blocks.insert({
         key: genesisBlock.hash,
-        value: genesisBlock.serialize(),
+        value: genesisBlock,
       });
       this.blocks.insert({
         key: this.tailKey,
@@ -44,16 +44,12 @@ class Chain {
           key: { $ne: 'tail' },
         },
       },
-      {
-        type: 'map',
-        value: ({ value }) => JSON.parse(value),
-      },
-    ]).data({ removeMeta: true });
+    ]).data({ removeMeta: true }).map(item => item.value);
   }
   get last() {
     const block = this.blocks.by('key', this.tail);
     if (block) {
-      return new Block(JSON.parse(block.value));
+      return new Block(block.value);
     }
     return null;
   }
@@ -68,7 +64,7 @@ class Chain {
     }
     this.blocks.insert({
       key: newBlock.hash,
-      value: newBlock.serialize(),
+      value: newBlock,
     });
     const tail = this.blocks.by('key', this.tailKey);
     tail.value = newBlock.hash;

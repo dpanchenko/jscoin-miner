@@ -35,6 +35,7 @@ class Wallet {
   balance() {
     return new Promise(resolve =>
       asyncReduce(this.blockchain.chain, { amount: 0, debet: [], credit: [] }, (acc, block, cb) => {
+        console.log('block', block);
         const { transactions = [] } = block.data;
         const delta = Wallet.calculateTransactions(transactions, this.address);
         cb(null, {
