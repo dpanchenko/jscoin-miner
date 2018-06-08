@@ -77,7 +77,7 @@ class Chain {
         remoteLongestChain = chainData;
       }
     });
-    if (this.chain.length >= remoteLongestChain.blocks.length) {
+    if (this.chain().length >= remoteLongestChain.blocks.length) {
       log('use local chain as consistent');
       return;
     }
