@@ -1,11 +1,22 @@
+const config = require('config');
 const { proofOfWork, stringifyData, calculateHash } = require('../libs/pow');
+
+const { output: MINER_OUTPUT } = config.miner;
 
 class Block {
   constructor(params) {
     const {
       index = 0,
       timestamp = Date.now(),
-      data = {},
+      data = {
+        transactions: [
+          {
+            input: 'coinbase',
+            output: MINER_OUTPUT,
+            amount: 10,
+          },
+        ],
+      },
       previousHash = '',
       nonce = 0,
       hash,

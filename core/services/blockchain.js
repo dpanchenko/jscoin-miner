@@ -13,7 +13,7 @@ if (!MINER_OUTPUT) {
 }
 
 module.exports = (db) => {
-  const blockchain = new Chain(db);
+  const blockchain = new Chain(db, MINER_OUTPUT);
   const transactions = new Transactions(db);
 
   log('Pending transactions', transactions.all.length);
