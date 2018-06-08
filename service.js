@@ -61,14 +61,14 @@ lokiDB((db) => {
     minersPool = data.filter(({ id }) => id !== minerId);
     log('We got new miners list', JSON.stringify(minersPool));
     if (minersPool.length) {
-      // await blockchainService.syncronizeChain(minersPool);
+      await blockchainService.syncronizeChain(minersPool);
     }
   });
 
   socket.on('block', async (data) => {
     log('Someone create new block. Need to update chain', JSON.stringify(data));
     if (minersPool.length) {
-      // await blockchainService.syncronizeChain(minersPool);
+      await blockchainService.syncronizeChain(minersPool);
     }
   });
 
