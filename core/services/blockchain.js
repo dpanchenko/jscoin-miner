@@ -2,6 +2,7 @@ const config = require('config');
 const createDebug = require('debug');
 const Chain = require('../classes/chain');
 const Transactions = require('../classes/transactions');
+const Wallet = require('../classes/wallet');
 
 const log = createDebug(`${config.app.name}:service:blockchain`);
 
@@ -45,6 +46,12 @@ module.exports = (db) => {
     }
   };
 
+  const balance = (address = MINER_OUTPUT) => {
+    const wallet = new Wallet(address, blockchain, transactions);
+    log('get balance');
+    return wallet.balance();
+  };
+
   const blocks = () => {
     log('get blocks');
     return blockchain.chain;
@@ -63,6 +70,7 @@ module.exports = (db) => {
 
   return {
     mine,
+    balance,
     blocks,
     transactionAdd,
     transactionsList,

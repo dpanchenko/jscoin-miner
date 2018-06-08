@@ -186,32 +186,24 @@ describe('Chain class', function () {
     const result = await chain.add('data');
     expect(result).to.equal(null);
   });
-  describe('add new block to chain', async function () {
+  it('add new block to chain', async function () {
     const { db, collection } = generateExistingCollectionAddBlockStub();
     const chain = new Chain(db);
     const newBlock = await chain.add({});
-    it('should return added block', function () {
-      expect(newBlock instanceof StubBlock).to.equal(true);
-    });
-    it('should following flow', function () {
-      expect(db.getCollection.called).to.equal(true);
-      expect(collection.by.called).to.equal(true);
-      expect(collection.insert.called).to.equal(true);
-      expect(collection.update.called).to.equal(true);
-    });
+    expect(newBlock instanceof StubBlock).to.equal(true);
+    expect(db.getCollection.called).to.equal(true);
+    expect(collection.by.called).to.equal(true);
+    expect(collection.insert.called).to.equal(true);
+    expect(collection.update.called).to.equal(true);
   });
-  describe('fail add new block to chain', async function () {
+  it('fail add new block to chain', async function () {
     const { db, collection } = generateExistingCollectionAddBlockStub();
     const chain = new Chain(db);
     const newBlock = await chain.add('fail');
-    it('should return null instead  block', function () {
-      expect(newBlock).to.equal(null);
-    });
-    it('should following flow', function () {
-      expect(db.getCollection.called).to.equal(true);
-      expect(collection.by.called).to.equal(true);
-      expect(collection.insert.called).to.equal(false);
-      expect(collection.update.called).to.equal(false);
-    });
+    expect(newBlock).to.equal(null);
+    expect(db.getCollection.called).to.equal(true);
+    expect(collection.by.called).to.equal(true);
+    expect(collection.insert.called).to.equal(false);
+    expect(collection.update.called).to.equal(false);
   });
 });

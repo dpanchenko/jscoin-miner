@@ -37,6 +37,7 @@
     "sinon": "^5.0.10"
   },
   "dependencies": {
+    "async-reduce": "0.0.1",
     "body-parser": "^1.18.3",
     "config": "^1.30.0",
     "debug": "^3.1.0",
