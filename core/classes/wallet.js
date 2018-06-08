@@ -48,8 +48,9 @@ class Wallet {
       }));
   }
   async pay(amount, target) {
-    const { confirmed } = await this.balance();
-    if (confirmed.amount > amount && this.address !== target) {
+    const { confirmed, pending } = await this.balance();
+    const limit = pending.amount >= 0 ? confirmed.amount : confirmed.amount + pending.amount;
+    if (limit > amount && this.address !== target) {
       this.transaction.add({
         input: this.address,
         output: target,
