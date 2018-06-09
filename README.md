@@ -1,6 +1,6 @@
 # jscoin
 
-Full node. Registering self in pool manager and listed requests for add new transactions and mine new blocks. Send current blockchain by request, can calculate balance and statement for wallet address. Can work as independent miner without pool or can sync self blochain with other miniers nodes through miners pool manager. Detailed API can be accessed by the root path: `http(a)://node-web-url/`
+Full node. Registering self in pool manager and listed requests for add new transactions and mine new blocks. Send current blockchain by request, can calculate balance and statement for wallet address. Can work as independent miner without pool or can sync self blochain with other miniers nodes through miners pool manager (https://github.com/dpanchenko/jscoinMinerPool). Detailed API can be accessed by the root path: `http(a)://node-web-url/`
 
 ## Environment
 
@@ -12,7 +12,7 @@ export PORT=8080                                  # application server port
 export MINER_OUTPUT='miner-wallet-address'        # wallet address for minig rewards
 export LOKI_DB_PATH='db.json'                     # path to blockchain database file
 export COMPLEXITY=1                               # POW complexity (count of zeroes from the beginning of hash)
-export POOL_ADDRESS=http://localhost:8070         # http address of hte pool to sync all miners nodes for syncronize blockcain between minirs
+export POOL_ADDRESS=http://localhost:8070         # http address of the jscoin-miner-pool(https://github.com/dpanchenko/jscoinMinerPool) application to sync all miners nodes for syncronize blockcain between minirs
 export SERVER_EXTERNAL_URL=http://localhost:8080  # external address of current node (this address will receive all others nodes and will ask blocks for sync)
 ```
 
@@ -62,7 +62,7 @@ docker run -d --name=jscoin-miner \
   -e MINER_OUTPUT="miner-wallet-address" \
   -e LOKI_DB_PATH="/data/db.json" \
   -e COMPLEXITY=1 \
-  -e POOL_ADDRESS="http://localhost:8070" \
+  -e POOL_ADDRESS="http://localhost:8285" \
   -e SERVER_EXTERNAL_URL="http://localhost:8185" \
   --restart=always dpanchenko/jscoinminer:latest
 ```
