@@ -64,7 +64,7 @@ docker run -d --name=jscoin-miner \
   -e COMPLEXITY=1 \
   -e POOL_ADDRESS="http://localhost:8285" \
   -e SERVER_EXTERNAL_URL="http://localhost:8185" \
-  --restart=always dpanchenko/jscoinminer:latest
+  --restart=always dpanchenko/jscoin-miner:latest
 ```
 
 
