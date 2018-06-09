@@ -6,7 +6,7 @@ jobs:
       - checkout
       - run: |
           export BUILD_TAG=$(eval "echo ${CIRCLE_TAG}")
-          export BUILD_REPO=jscoin
+          export BUILD_REPO=jscoin-miner
           bash scripts/docker-image.sh
 
 workflows:

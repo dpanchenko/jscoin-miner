@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon service.js",
+    "doc": "apidoc -e node_modules -o public/ service.js",
     "lint": "eslint .",
     "pretest": "npm run lint --silent",
     "test": "NODE_ENV=test nyc --reporter=html --reporter=text mocha -R spec test/**/*.test.js",
@@ -35,9 +36,11 @@
     "sinon": "^5.0.10"
   },
   "dependencies": {
+    "apidoc": "^0.17.6",
     "async-reduce": "0.0.1",
     "body-parser": "^1.18.3",
     "config": "^1.30.0",
+    "cors": "^2.8.4",
     "debug": "^3.1.0",
     "express": "^4.16.3",
     "lokijs": "^1.5.5",
