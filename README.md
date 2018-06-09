@@ -1,5 +1,7 @@
 # jscoin
 
+Full node. Registering self in pool manager and listed requests for add new transactions and mine new blocks. Send current blockchain by request, can calculate balance and statement for wallet address. Can work as independent miner without pool or can sync self blochain with other miniers nodes through miners pool manager. Detailed API can be accessed by the root path: `http(a)://node-web-url/`
+
 ## Environment
 
 `Node >= 8.11.2`
