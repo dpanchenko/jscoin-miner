@@ -55,6 +55,7 @@ npm test
 
  - For start application inside docker container use command
 ``` bash
+# for correct access to host machine address we need to use or external links or docker defined host machine address, which is system dependent (on macos for latest docker versions it is docker.for.mac.localhost)
 docker run -d --name=jscoin-miner \
   -p 8185:8080 \
   -v /home/data:/data \
@@ -62,8 +63,8 @@ docker run -d --name=jscoin-miner \
   -e MINER_OUTPUT="miner-wallet-address" \
   -e LOKI_DB_PATH="/data/db.json" \
   -e COMPLEXITY=1 \
-  -e POOL_ADDRESS="http://localhost:8285" \
-  -e SERVER_EXTERNAL_URL="http://localhost:8185" \
+  -e POOL_ADDRESS="http://docker.for.mac.localhost:8285" \        # instead `docker.for.mac.localhost` use you system defined constant or use external url (ngrok like tool)
+  -e SERVER_EXTERNAL_URL="http://docker.for.mac.localhost:8185" \ # instead `docker.for.mac.localhost` use you system defined constant or use external url (ngrok like tool)
   --restart=always dpanchenko/jscoin-miner:latest
 ```
 

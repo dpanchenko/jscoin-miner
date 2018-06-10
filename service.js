@@ -4,7 +4,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const createDebug = require('debug');
 const socketIO = require('socket.io-client');
-const request = require('request-promise-native');
 
 const lokiDB = require('./core/db');
 const sha256hash = require('./core/libs/hash');
@@ -17,7 +16,7 @@ const app = express();
 
 const socket = socketIO(config.miner.pool);
 
-const minerId = sha256hash(`${config.server.address}:${config.server.port}`);
+const minerId = sha256hash(config.server.externalUrl);
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -208,13 +207,9 @@ lokiDB((db) => {
     log('Connected successfully to pool');
   });
 
-  socket.on('miners', async () => {
-    const miners = await request({
-      uri: config.miner.pool,
-      json: true,
-    });
-    log('We ask miners list', miners);
-    minersPool = miners.filter(({ id }) => id !== minerId);
+  socket.on('miners', async (data) => {
+    minersPool = data.filter(({ id }) => id !== minerId);
+    log('Current miners pool', JSON.stringify(minersPool));
     if (minersPool.length) {
       await blockchainService.syncronizeChain(minersPool);
     }
